@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "forum/protos/go/userpb";
+
+service AuthService {
+  rpc GetUserName(UserRequest) returns (UserResponse);
+}
+
+message UserRequest {
+  int32 user_id = 1;
+}
+
+message UserResponse {
+  string user_name = 1;
+}
