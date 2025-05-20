@@ -132,7 +132,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Новый сервис для backend
+// Новый сервис для forum
 type BackendServiceClient interface {
 	GetUserComments(ctx context.Context, in *UserCommentsRequest, opts ...grpc.CallOption) (*UserCommentsResponse, error)
 }
@@ -159,7 +159,7 @@ func (c *backendServiceClient) GetUserComments(ctx context.Context, in *UserComm
 // All implementations must embed UnimplementedBackendServiceServer
 // for forward compatibility.
 //
-// Новый сервис для backend
+// Новый сервис для forum
 type BackendServiceServer interface {
 	GetUserComments(context.Context, *UserCommentsRequest) (*UserCommentsResponse, error)
 	mustEmbedUnimplementedBackendServiceServer()

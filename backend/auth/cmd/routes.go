@@ -1,4 +1,4 @@
-package internal
+package main
 
 import (
 	"forum/backend/auth/internal/handlers"
@@ -6,11 +6,10 @@ import (
 	"log"
 )
 
-func initializeRoutes() {
+func InitializeRoutes() {
 	log.Println("Initializing routes")
 	router.Use(middleware.CorsMiddleware())
 
-	// Публичные маршруты
 	authRoutes := router.Group("/auth")
 	{
 		authRoutes.POST("/login", handlers.Login)

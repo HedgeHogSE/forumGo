@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"forum/backend/auth/db"
+	"forum/backend/auth/internal/db"
 	"log"
 	"time"
 

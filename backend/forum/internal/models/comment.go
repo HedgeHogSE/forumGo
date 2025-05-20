@@ -2,7 +2,8 @@ package models
 
 import (
 	"fmt"
-	"forum/backend/forum/db"
+	"forum/backend/forum/internal/db"
+	"forum/backend/forum/internal/external"
 	"log"
 	"time"
 )
@@ -14,6 +15,16 @@ type Comment struct {
 	TopicId   int       `json:"topic_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type CommentWithUsername struct {
+	ID        int       `json:"id"`
+	Content   string    `json:"content"`
+	AuthorId  int       `json:"author_id"`
+	TopicId   int       `json:"topic_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Username  string    `json:"username"`
 }
 
 func GetAllComments() []Comment {
@@ -77,21 +88,30 @@ func GetCommentsByAuthorID(id int) ([]Comment, error) {
 	return comments, nil
 }
 
-func GetCommentsByTopicID(id int) ([]Comment, error) {
-	var comments []Comment
-	rows, err := db.Db.Query("SELECT * FROM comments WHERE topic_id = $1", id)
+func GetCommentsByTopicID(id int) ([]CommentWithUsername, error) {
+	var comments []CommentWithUsername
+	rows, err := db.Db.Query("SELECT * FROM comments WHERE topic_id = $1 ORDER BY created_at", id)
 	if err != nil {
+		log.Println(rows)
+		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var c Comment
+		var c CommentWithUsername
 		err := rows.Scan(&c.ID, &c.Content, &c.AuthorId, &c.TopicId, &c.CreatedAt, &c.UpdatedAt)
+		username, err := external.GetUsernameFromAuth(c.AuthorId)
 		if err != nil {
 			log.Println("Ошибка при сканировании строки:", err)
 			continue
 		}
+		c.Username = username
 		comments = append(comments, c)
+	}
+
+	if err != nil {
+		log.Println("Ошибка при получении имени пользователя:", err)
+		return nil, err
 	}
 
 	if err := rows.Err(); err != nil {

@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"forum/backend/forum/db"
+	"forum/backend/forum/internal/db"
 	"log"
 	"time"
 )
