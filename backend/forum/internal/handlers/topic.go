@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"database/sql"
-	"forum/backend/forum/internal/external"
-	"forum/backend/forum/internal/logger"
-	"forum/backend/forum/internal/models"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/HedgeHogSE/forum/backend/forum/internal/external"
+	"github.com/HedgeHogSE/forum/backend/forum/internal/logger"
+	"github.com/HedgeHogSE/forum/backend/forum/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -32,7 +33,7 @@ func GetAllTopicsWithUsername(c *gin.Context) {
 	topics1 := models.GetAllTopics()
 
 	for i := 0; i < len(topics1); i++ {
-		name, err := external.GetUsernameFromAuth(topics1[i].AuthorId)
+		name, err := external.GetUsernameByUserID(topics1[i].AuthorId)
 		if err != nil {
 			log1.Error().
 				Err(err).
@@ -84,7 +85,7 @@ func GetTopicWithData(c *gin.Context) {
 		return
 	}
 
-	username, err := external.GetUsernameFromAuth(topic.AuthorId)
+	username, err := external.GetUsernameByUserID(topic.AuthorId)
 	if err != nil {
 		log1.Error().
 			Err(err).

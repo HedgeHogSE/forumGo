@@ -2,10 +2,11 @@ package models
 
 import (
 	"fmt"
-	"forum/backend/forum/internal/db"
-	"forum/backend/forum/internal/external"
 	"log"
 	"time"
+
+	"github.com/HedgeHogSE/forum/backend/forum/internal/db"
+	"github.com/HedgeHogSE/forum/backend/forum/internal/external"
 )
 
 type Comment struct {
@@ -25,6 +26,14 @@ type CommentWithUsername struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Username  string    `json:"username"`
+}
+
+// CommentService реализует интерфейс grpc.CommentService
+type CommentService struct{}
+
+// NewCommentService создает новый экземпляр CommentService
+func NewCommentService() *CommentService {
+	return &CommentService{}
 }
 
 func GetAllComments() []Comment {
@@ -65,13 +74,15 @@ func GetCommentByID(id int) (*Comment, error) {
 	return &c, nil
 }
 
-func GetCommentsByAuthorID(id int) ([]Comment, error) {
+// GetCommentsByAuthorID получает комментарии по ID автора
+func GetCommentsByAuthorID(authorID int) ([]Comment, error) {
 	var comments []Comment
-	rows, err := db.Db.Query("SELECT * FROM comments WHERE author_id = $1", id)
+	rows, err := db.Db.Query("SELECT * FROM comments WHERE author_id = $1", authorID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var c Comment
 		err := rows.Scan(&c.ID, &c.Content, &c.AuthorId, &c.TopicId, &c.CreatedAt, &c.UpdatedAt)
@@ -88,6 +99,11 @@ func GetCommentsByAuthorID(id int) ([]Comment, error) {
 	return comments, nil
 }
 
+// GetCommentsByAuthorID получает комментарии по ID автора
+func (s *CommentService) GetCommentsByAuthorID(authorID int) ([]Comment, error) {
+	return GetCommentsByAuthorID(authorID)
+}
+
 func GetCommentsByTopicID(id int) ([]CommentWithUsername, error) {
 	var comments []CommentWithUsername
 	rows, err := db.Db.Query("SELECT * FROM comments WHERE topic_id = $1 ORDER BY created_at", id)
@@ -100,7 +116,7 @@ func GetCommentsByTopicID(id int) ([]CommentWithUsername, error) {
 	for rows.Next() {
 		var c CommentWithUsername
 		err := rows.Scan(&c.ID, &c.Content, &c.AuthorId, &c.TopicId, &c.CreatedAt, &c.UpdatedAt)
-		username, err := external.GetUsernameFromAuth(c.AuthorId)
+		username, err := external.GetUsernameByUserID(c.AuthorId)
 		if err != nil {
 			log.Println("Ошибка при сканировании строки:", err)
 			continue
@@ -137,10 +153,20 @@ func AddComment(c *Comment) (int, error) {
 
 func DeleteCommentByID(id int) error {
 	query := `DELETE FROM comments WHERE id = $1`
-	_, err := db.Db.Exec(query, id)
+	result, err := db.Db.Exec(query, id)
 	if err != nil {
 		return fmt.Errorf("не удалось удалить комментарий: %w", err)
 	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("ошибка при получении количества удаленных строк: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("комментарий с id %d не найден", id)
+	}
+
 	return nil
 }
 

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"forum/backend/forum/internal/logger"
-	"forum/backend/forum/internal/models"
+	"github.com/HedgeHogSE/forum/backend/forum/internal/logger"
+	"github.com/HedgeHogSE/forum/backend/forum/internal/models"
 	"net/http"
 	"strconv"
 

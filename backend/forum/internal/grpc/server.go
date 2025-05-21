@@ -2,21 +2,35 @@ package grpc
 
 import (
 	"context"
-	"forum/backend/forum/internal/models"
-	"forum/backend/protos/go"
 	"log"
 	"net"
 	"time"
 
+	"github.com/HedgeHogSE/forum/backend/forum/internal/models"
+	userpb "github.com/HedgeHogSE/forum/backend/protos/go"
+
 	"google.golang.org/grpc"
 )
 
+// CommentService определяет интерфейс для работы с комментариями
+type CommentService interface {
+	GetCommentsByAuthorID(authorID int) ([]models.Comment, error)
+}
+
 type BackendServer struct {
 	userpb.UnimplementedBackendServiceServer
+	commentService CommentService
+}
+
+// NewBackendServer создает новый экземпляр BackendServer
+func NewBackendServer(commentService CommentService) *BackendServer {
+	return &BackendServer{
+		commentService: commentService,
+	}
 }
 
 func (s *BackendServer) GetUserComments(ctx context.Context, req *userpb.UserCommentsRequest) (*userpb.UserCommentsResponse, error) {
-	comments, err := models.GetCommentsByAuthorID(int(req.UserId))
+	comments, err := s.commentService.GetCommentsByAuthorID(int(req.UserId))
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +57,7 @@ func StartGRPCServer() {
 	}
 
 	s := grpc.NewServer()
-	userpb.RegisterBackendServiceServer(s, &BackendServer{})
+	userpb.RegisterBackendServiceServer(s, NewBackendServer(models.NewCommentService()))
 
 	log.Printf("Backend gRPC server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {

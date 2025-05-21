@@ -3,9 +3,10 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"forum/backend/forum/internal/db"
 	"log"
 	"time"
+
+	"github.com/HedgeHogSE/forum/backend/forum/internal/db"
 )
 
 type Topic struct {
@@ -58,6 +59,10 @@ func GetTopicByID(id int) (*Topic, error) {
 }
 
 func AddTopic(t *Topic) (int, error) {
+	if t.Title == "" {
+		return 0, fmt.Errorf("заголовок не может быть пустым")
+	}
+
 	var id int
 	query := `
 		INSERT INTO topics (title, description, author_id)
@@ -74,15 +79,28 @@ func AddTopic(t *Topic) (int, error) {
 
 func DeleteTopicByID(id int) error {
 	query := `DELETE FROM topics WHERE id = $1`
-	_, err := db.Db.Exec(query, id)
+	result, err := db.Db.Exec(query, id)
 	if err != nil {
-		log.Println("!!!")
 		return fmt.Errorf("не удалось удалить топик: %w", err)
 	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("ошибка при получении количества удаленных строк: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("топик с id %d не найден", id)
+	}
+
 	return nil
 }
 
 func PutTopic(id int, updated *Topic) (Topic, error) {
+	if updated.Title == "" {
+		return Topic{}, fmt.Errorf("заголовок не может быть пустым")
+	}
+
 	query := `
 		UPDATE topics 
 		SET title = $1, description = $2

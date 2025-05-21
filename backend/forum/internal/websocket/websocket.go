@@ -2,13 +2,14 @@ package websocket
 
 import (
 	"encoding/json"
-	"forum/backend/forum/internal/models"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/HedgeHogSE/forum/backend/forum/internal/models"
+	"github.com/gorilla/websocket"
 )
 
 /*type Message struct {
